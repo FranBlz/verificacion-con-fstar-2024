@@ -107,11 +107,11 @@ let ex_falso (#a:Type) (f : falso) : a =
 
 (* Demostrar *)
 let neu1 (#a:Type) : oo a falso -> a =
-  admit()
+  fun (Inl a) -> a
 
 (* Demostrar *)
 let neu2 (#a:Type) : a -> oo a falso =
-  admit()
+  fun a -> Inl a
 
 (* Distribución de `yy` sobre `oo`, en ambas direcciones *)
 let distr_yyoo_1 (#a #b #c : Type)
@@ -127,50 +127,71 @@ let distr_yyoo_1 (#a #b #c : Type)
 let distr_yyoo_2 (#a #b #c : Type)
   : oo (yy a b) (yy a c) -> yy a (oo b c)
 =
-  admit()
+  function
+  | Inl (a, b) -> (a, Inl b)
+  | Inr (a, c) -> (a, Inr c)
 
 let distr_ooyy_1 (#a #b #c : Type)
   : oo a (yy b c) -> yy (oo a b) (oo a c)
 =
-  admit()
+  function
+  | Inl a      -> (Inl a, Inl a)
+  | Inr (b, c) -> (Inr b, Inr c)
 
 let distr_ooyy_2 (#a #b #c : Type)
   : yy (oo a b) (oo a c) -> oo a (yy b c)
 =
-  admit()
+  function
+  | (Inl a', Inl a) -> Inl a
+  | (Inl a, Inr _) -> Inl a
+  | (Inr _, Inl a) -> Inl a
+  | (Inr b, Inr c) -> Inr (b, c)
 
+// type no (a : Type) = a -> falso
 let modus_tollens (#a #b : Type)
   : (a -> b) -> (no b -> no a)
 =
-  admit()
-  (* Vale la recíproca? *)
+  fun f g x -> g (f x)
+  (* Vale la recíproca? NO *)
 
 let modus_tollendo_ponens (#a #b : Type)
   : (oo a b) -> (no a -> b)
 =
-  admit()
+  fun d na ->
+  match d with
+  | Inl a -> ex_falso (na a) 
+  | Inr b -> b
   (* Vale la recíproca? *)
 
 let modus_ponendo_tollens (#a #b : Type)
-  : no (yy a b) -> (a -> no b)
+  : no (yy a b) -> (a -> no b) // ((yy a b) -> falso) -> (a -> (b -> falso))
 =
-  admit()
+  fun f a b -> f (a, b)
   (* Vale la recíproca? *)
 
 (* Declare y pruebe, si es posible, las leyes de De Morgan
 para `yy` y `oo`. ¿Son todas intuicionistas? *)
 
-let demorgan1_ida (#a #b : Type) : oo (no a) (no b) -> no (yy a b) =
+let demorgan1_ida (#a #b : Type) : oo (no a) (no b) -> no (yy a b) = // oo (a -> falso) (b -> falso) -> (yy a b) -> falso
+  fun orf (a, b) ->
+  match orf with
+  | Inl af -> af a
+  | Inr bf -> bf b
+
+let demorgan1_vuelta (#a #b : Type) : no (yy a b) -> oo (no a) (no b) = // (yy a b) -> falso -> oo (a -> falso) (b -> falso)
   admit()
 
-let demorgan1_vuelta (#a #b : Type) : no (yy a b) -> oo (no a) (no b) =
-  admit()
+let demorgan2_ida (#a #b : Type) : yy (no a) (no b) -> no (oo a b) = // (yy (a -> falso) (b -> falso)) -> (oo a b) -> falso
+  fun (af, bf) or ->
+  match or with
+  | Inl a -> af a
+  | Inr b -> bf b
 
-let demorgan2_ida (#a #b : Type) : yy (no a) (no b) -> no (oo a b) =
-  admit()
-
-let demorgan2_vuelta (#a #b : Type) : no (oo a b) -> yy (no a) (no b) =
-  admit()
+let demorgan2_vuelta (#a #b : Type) : no (oo a b) -> yy (no a) (no b) = // (oo a b) -> falso -> (yy (a -> falso) (b -> falso))
+  fun f ->
+    let na : no a = fun a -> f (Inl a) in
+    let nb : no b = fun b -> f (Inr b) in
+    (na, nb)
 
 
  (* P y no P no pueden valer a la vez. *)
