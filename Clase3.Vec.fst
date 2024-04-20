@@ -16,7 +16,12 @@ let rec vidx (#a:Type) (#n:pos) (xs : vec a n) (i : nat{i < n}) : a =
     else vidx tl (i-1)
 
 let vappend (#a:Type) (#n1 #n2 : nat) (xs : vec a n1) (ys : vec a n2) : vec a (n1 + n2) =
-  admit() (* completar *)
+  let rec app (ys : vec a n1) (xs : vec a n2) : Tot (vec a (n1 + n2)) (decreases xs) =
+    match xs with
+    | VNil -> ys
+    | VCons hd tl -> app (VCons hd ys) tl // REVISAR
+  in
+  app ys xs
 
 let vupd (#a:Type) (#n:pos) (xs : vec a n) (i : nat{i < n}) (x : a) : vec a n =
   admit() (* completar *)
